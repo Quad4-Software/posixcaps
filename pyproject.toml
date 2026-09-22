@@ -10,13 +10,20 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = "0BSD"
 authors = [{ name = "Quad4" }]
-keywords = ["capabilities", "linux", "security", "privileges"]
+keywords = ["capabilities", "linux", "security", "privileges", "xattr"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: BSD License",
-    "Operating System :: OS Independent",
+    "Operating System :: POSIX :: Linux",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Security",
+    "Topic :: System :: Operating System Kernels :: Linux",
     "Typing :: Typed",
 ]
 dependencies = []
@@ -34,6 +41,7 @@ path = "src/posixcaps/__init__.py"
 dev = [
     "pytest>=9.1.1",
     "pytest-cov>=7.1.0",
+    "hypothesis>=6.168.0",
     "ruff>=0.16.8",
     "bandit>=1.9.4",
     "mypy>=2.3.1",

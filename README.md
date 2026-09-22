@@ -1,38 +1,59 @@
-# python-library-template
+# posixcaps
 
-[![CI](https://github.com/Quad4-Software/python-library-template/actions/workflows/ci.yml/badge.svg)](https://github.com/Quad4-Software/python-library-template/actions/workflows/ci.yml)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Quad4-Software/python-library-template/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Quad4-Software/python-library-template)
+[![CI](https://github.com/Quad4-Software/posixcaps/actions/workflows/ci.yml/badge.svg)](https://github.com/Quad4-Software/posixcaps/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/Quad4-Software/posixcaps/actions/workflows/codeql.yml/badge.svg)](https://github.com/Quad4-Software/posixcaps/actions/workflows/codeql.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Quad4-Software/posixcaps/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Quad4-Software/posixcaps)
 [![License: 0BSD](https://img.shields.io/badge/license-0BSD-blue)](LICENSE)
 
-Quad4 template for dependency-free typed Python libraries.
+Dependency-free Python bindings for Linux capabilities. Read and modify
+the effective, permitted, inheritable, bounding and ambient capability
+sets of threads, and the file capabilities stored in the
+`security.capability` extended attribute. Everything goes through
+capget(2)/capset(2), prctl(2) and getxattr(2)/setxattr(2) via ctypes;
+there are no runtime dependencies.
 
-## Contents
+Requires Python 3.10+ and Linux.
 
-- `src/` layout with Hatchling, dynamic version from `__init__.py`
-- Fully typed, `py.typed` shipped, mypy strict over `src` and `tests`
-- ruff lint + format, bandit, pytest
-- `make check` runs the full local gate
-- GitHub Actions: CI matrix 3.10-3.14, CodeQL, OpenSSF Scorecard with SARIF
-  upload, zizmor, dependency review, tag-triggered PyPI release with build
-  provenance and attestations
-- All actions pinned to commit SHAs, least-privilege permissions,
-  `step-security/harden-runner` on every job, Dependabot with 7-day cooldown
+## Install
 
-## Using this template
+    pip install posixcaps
 
-1. Create a repository from this template (GitHub "Use this template" button)
-   or copy the tree.
-2. Rename the package:
+## Usage
 
-   ```sh
-   mv src/posixcaps src/mypkg
-   mv tests/test_posixcaps.py tests/test_mypkg.py
-   grep -rl posixcaps . | xargs sed -i 's/posixcaps/mypkg/g'
-   ```
+```python
+from posixcaps import Cap, Capabilities, ambient, bounding
 
-3. Update `pyproject.toml`: description, keywords, classifiers, repository URL.
-4. Update `SECURITY.md` if the contact address differs.
-5. For releases, configure a PyPI trusted publisher for the repository
-   (workflow `release.yml`, environment `pypi`), then tag `v*` to publish.
+caps = Capabilities.for_self()
+print(caps.effective)  # frozenset of Cap
+print(caps.permitted)
+print(caps.inheritable)
+
+caps.set(effective=caps.permitted)  # capset(2), kernel rules enforced
+
+print(bounding())  # prctl(PR_CAPBSET_READ) per capability
+print(ambient())  # prctl(PR_CAP_AMBIENT_IS_SET) per capability
+```
+
+File capabilities live in the `security.capability` xattr:
+
+```python
+from posixcaps import Cap, get_file_caps, set_file_caps
+
+set_file_caps(  # requires CAP_SETFCAP
+    "/usr/local/bin/mydaemon",
+    effective=True,
+    permitted={Cap.CAP_NET_BIND_SERVICE},
+)
+print(get_file_caps("/usr/local/bin/mydaemon"))
+```
+
+`posixcaps.cap_last_cap()` reports the highest capability index the
+running kernel supports, from /proc/sys/kernel/cap_last_cap.
+
+## Documentation
+
+- API: docstrings in `src/posixcaps/`, mostly `caps.py` and `filecaps.py`
+- capabilities(7): https://man7.org/linux/man-pages/man7/capabilities.7.html
+- capget(2): https://man7.org/linux/man-pages/man2/capget.2.html
 
 License: 0BSD.
