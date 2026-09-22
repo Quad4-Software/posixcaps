@@ -1,14 +1,47 @@
 # SPDX-License-Identifier: 0BSD
-"""Short package description.
+"""Python bindings for Linux capabilities.
 
-Replace with a one-line summary and any usage notes a reader needs
-before opening the API. Link external references here.
+Read and modify the effective, permitted, inheritable, bounding and
+ambient capability sets of threads, and the file capabilities stored in
+the security.capability extended attribute. Everything goes through
+capget(2)/capset(2), prctl(2) and getxattr(2)/setxattr(2) via ctypes;
+there are no runtime dependencies.
+
+Kernel references: capabilities(7), capget(2), prctl(2).
 """
 
-from __future__ import annotations
-
-from posixcaps.core import Greeter
+from .caps import (
+    Cap,
+    Capabilities,
+    ambient,
+    ambient_clear,
+    ambient_raise,
+    ambient_reset,
+    bounding,
+    cap_last_cap,
+    drop_bounding,
+    get,
+)
+from .errors import CapError, UnsupportedError
+from .filecaps import FileCaps, get_file_caps, set_file_caps
 
 __version__ = "0.1.0"
 
-__all__ = ["Greeter", "__version__"]
+__all__ = [
+    "Cap",
+    "CapError",
+    "Capabilities",
+    "FileCaps",
+    "UnsupportedError",
+    "__version__",
+    "ambient",
+    "ambient_clear",
+    "ambient_raise",
+    "ambient_reset",
+    "bounding",
+    "cap_last_cap",
+    "drop_bounding",
+    "get",
+    "get_file_caps",
+    "set_file_caps",
+]
