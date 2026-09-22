@@ -103,9 +103,9 @@ def _raise_errno(err: int) -> NoReturn:
 
 def _call(nr: int, *args: object) -> int:
     ret = int(_get_libc().syscall(nr, *args))
-    if ret != -1:
-        return ret
-    _raise_errno(ctypes.get_errno())
+    if ret == -1:
+        _raise_errno(ctypes.get_errno())
+    return ret
 
 
 def capget(pid: int = 0) -> tuple[tuple[int, int], tuple[int, int], tuple[int, int]]:
