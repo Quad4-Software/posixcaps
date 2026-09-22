@@ -47,6 +47,11 @@ def _mask_set(mask: int) -> frozenset[Cap]:
     return frozenset(cap for cap in Cap if mask & (1 << cap.value))
 
 
+def _wait_code(pid: int) -> int:
+    _, status = os.waitpid(pid, 0)
+    return os.waitstatus_to_exitcode(status)
+
+
 @requires_linux
 def test_for_self_matches_proc_status() -> None:
     caps = Capabilities.for_self()
@@ -104,6 +109,124 @@ def test_ambient_reset_is_unprivileged() -> None:
 
 
 @requires_linux
+def test_set_unchanged_succeeds() -> None:
+    """capset(2) accepts writing the current sets back unchanged."""
+    caps = Capabilities.for_self()
+    caps.set()
+    again = Capabilities.for_self()
+    assert (again.effective, again.permitted, again.inheritable) == (
+        caps.effective,
+        caps.permitted,
+        caps.inheritable,
+    )
+
+
+@requires_linux
+def test_set_rejects_cap_not_in_permitted() -> None:
+    caps = Capabilities.for_self()
+    missing = sorted(set(Cap) - caps.permitted, key=int)
+    if not missing:
+        pytest.skip("permitted set covers every known capability")
+    with pytest.raises(CapError) as excinfo:
+        caps.set(effective=caps.effective | {missing[0]})
+    assert excinfo.value.errno == errno.EPERM
+
+
+@requires_linux
+def test_set_other_pid_needs_setpcap() -> None:
+    """capset on another pid requires CAP_SETPCAP in the effective set."""
+    init = Capabilities.for_pid(1)
+    if Cap.CAP_SETPCAP in get().effective:
+        init.set()
+    else:
+        with pytest.raises(CapError) as excinfo:
+            init.set()
+        assert excinfo.value.errno == errno.EPERM
+
+
+@requires_linux
+def test_ambient_raise_blocked_in_child() -> None:
+    """Raising a cap absent from permitted or inheritable gives EPERM."""
+    caps = Capabilities.for_self()
+    blocked = sorted(set(Cap) - (caps.permitted & caps.inheritable), key=int)
+    if not blocked:
+        pytest.skip("every known capability is permitted and inheritable")
+    pid = os.fork()
+    if pid == 0:
+        code = 0
+        try:
+            ambient_raise(blocked[0])
+        except OSError as exc:
+            if exc.errno == errno.EINVAL:
+                code = 3
+            else:
+                code = 0 if exc.errno == errno.EPERM else 2
+        else:
+            code = 1
+        os._exit(code)
+    code = _wait_code(pid)
+    if code == 3:
+        pytest.skip("kernel lacks ambient capability support")
+    assert code == 0
+
+
+@requires_linux
+def test_drop_bounding_needs_setpcap_in_child() -> None:
+    """Dropping CAP_SETPCAP first makes the EPERM check work for root too."""
+    pid = os.fork()
+    if pid == 0:
+        code = 0
+        try:
+            bnd = bounding()
+            if not bnd:
+                os._exit(3)
+            caps = Capabilities.for_self()
+            caps.set(effective=caps.effective - {Cap.CAP_SETPCAP})
+            try:
+                drop_bounding(min(bnd, key=int))
+            except OSError as exc:
+                code = 0 if exc.errno == errno.EPERM else 2
+            else:
+                code = 1
+        except OSError:
+            code = 2
+        os._exit(code)
+    code = _wait_code(pid)
+    if code == 3:
+        pytest.skip("bounding set is empty")
+    assert code == 0
+
+
+@requires_linux
+def test_set_file_caps_needs_setfcap_in_child(tmp_path: Path) -> None:
+    """Dropping CAP_SETFCAP first makes the EPERM check work for root too."""
+    target = tmp_path / "tool"
+    target.write_bytes(b"#!/bin/sh\nexit 0\n")
+    pid = os.fork()
+    if pid == 0:
+        code = 0
+        try:
+            caps = Capabilities.for_self()
+            caps.set(effective=caps.effective - {Cap.CAP_SETFCAP})
+            try:
+                set_file_caps(target, permitted={Cap.CAP_CHOWN})
+            except OSError as exc:
+                if exc.errno == errno.EOPNOTSUPP:
+                    code = 3
+                else:
+                    code = 0 if exc.errno == errno.EPERM else 2
+            else:
+                code = 1
+        except OSError:
+            code = 2
+        os._exit(code)
+    code = _wait_code(pid)
+    if code == 3:
+        pytest.skip("filesystem cannot store capability xattrs")
+    assert code == 0
+
+
+@requires_linux
 @requires_setpcap
 def test_drop_bounding_in_child() -> None:
     pid = os.fork()
@@ -120,8 +243,7 @@ def test_drop_bounding_in_child() -> None:
         except OSError:
             code = 2
         os._exit(code)
-    _, status = os.waitpid(pid, 0)
-    code = os.waitstatus_to_exitcode(status)
+    code = _wait_code(pid)
     if code == 3:
         pytest.skip("bounding set is empty")
     assert code == 0
@@ -151,8 +273,7 @@ def test_ambient_roundtrip_in_child() -> None:
         except OSError:
             code = 4
         os._exit(code)
-    _, status = os.waitpid(pid, 0)
-    code = os.waitstatus_to_exitcode(status)
+    code = _wait_code(pid)
     if code == 3:
         pytest.skip("no candidate capability in permitted and bounding")
     assert code == 0
