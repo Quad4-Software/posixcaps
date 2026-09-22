@@ -478,7 +478,7 @@ wheels = [
 ]
 
 [[package]]
-name = "packagename"
+name = "posixcaps"
 source = { editable = "." }
 
 [package.dev-dependencies]
