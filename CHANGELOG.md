@@ -1,7 +1,5 @@
 # Changelog
 
-## [Unreleased]
-
 ## [0.2.0] - Unreleased
 
 - SecureBits IntFlag covering the SECBIT_* masks from
