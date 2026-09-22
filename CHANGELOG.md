@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+## [0.2.0] - Unreleased
+
+- SecureBits IntFlag covering the SECBIT_* masks from
+  linux/securebits.h, including the EXEC_RESTRICT_FILE and
+  EXEC_DENY_INTERACTIVE bits added in Linux 6.17.
+- securebits() and set_securebits() via
+  prctl(PR_GET_SECUREBITS/PR_SET_SECUREBITS), and issecure() mirroring
+  the kernel's single-bit test.
+
 ## 0.1.0 - 2026-09-22
 
 Initial release.

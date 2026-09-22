@@ -2,7 +2,7 @@
 """Raw ctypes bindings for capget(2), capset(2) and prctl(2).
 
 glibc has no capget/capset wrappers, so both are invoked through libc's
-syscall(2). Their numbers differ per architecture; prctl goes through
+syscall(2). Their numbers differ per architecture. prctl goes through
 the libc wrapper directly, so no number is needed for it.
 """
 
@@ -27,6 +27,9 @@ PR_CAP_AMBIENT_IS_SET = 1
 PR_CAP_AMBIENT_RAISE = 2
 PR_CAP_AMBIENT_LOWER = 3
 PR_CAP_AMBIENT_CLEAR_ALL = 4
+
+PR_GET_SECUREBITS = 27
+PR_SET_SECUREBITS = 28
 
 
 class CapUserHeader(ctypes.Structure):

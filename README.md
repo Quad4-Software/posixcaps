@@ -10,8 +10,8 @@ Dependency-free Python bindings for Linux capabilities. Read and modify
 the effective, permitted, inheritable, bounding and ambient capability
 sets of threads, and the file capabilities stored in the
 `security.capability` extended attribute. Everything goes through
-capget(2)/capset(2), prctl(2) and getxattr(2)/setxattr(2) via ctypes;
-there are no runtime dependencies.
+capget(2)/capset(2), prctl(2) and getxattr(2)/setxattr(2) via ctypes.
+There are no runtime dependencies.
 
 Requires Python 3.10+ and Linux.
 
@@ -50,6 +50,17 @@ print(get_file_caps("/usr/local/bin/mydaemon"))
 
 `posixcaps.cap_last_cap()` reports the highest capability index the
 running kernel supports, from /proc/sys/kernel/cap_last_cap.
+
+Thread securebits (prctl(2)) are exposed as a flag mask:
+
+```python
+from posixcaps import SecureBits, securebits, set_securebits
+
+print(securebits())  # current SECBIT_* mask
+set_securebits(  # classic bits need CAP_SETPCAP, locks are one-way
+    securebits() | SecureBits.NOROOT | SecureBits.NOROOT_LOCKED
+)
+```
 
 ## Documentation
 
