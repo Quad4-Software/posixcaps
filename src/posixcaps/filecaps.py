@@ -5,7 +5,7 @@ The xattr stores struct vfs_cap_data (v1/v2) or struct vfs_ns_cap_data
 (v3) in little-endian u32 words: a magic_etc word carrying the revision
 in its top byte and the effective flag in bit 0, then a permitted and
 inheritable mask pair per u32 slot, and for v3 a trailing rootid word.
-Reads of all three revisions are normalized to FileCaps; writes always
+Reads of all three revisions are normalized to FileCaps. Writes always
 use the v3 layout.
 
 Kernel references: capabilities(7), linux/capability.h, setxattr(2).
@@ -42,7 +42,7 @@ class FileCaps:
 
     effective is the xattr's effective bit: when set, permitted
     capabilities also land in the process's effective set on execve(2).
-    rootid is only stored by v3 xattrs; v1/v2 reads report 0, matching
+    rootid is only stored by v3 xattrs. v1/v2 reads report 0, matching
     how the kernel interprets them.
     """
 
@@ -134,7 +134,7 @@ def set_file_caps(
     """Write file capabilities to path's security.capability xattr.
 
     The blob is always written in the v3 vfs_ns_cap_data layout.
-    Requires CAP_SETFCAP in the effective set; a missing privilege or a
+    Requires CAP_SETFCAP in the effective set. A missing privilege or a
     filesystem without xattr support surfaces as OSError.
     """
     caps = FileCaps(

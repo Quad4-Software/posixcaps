@@ -3,7 +3,7 @@
 
 Cap mirrors the CAP_* indexes from linux/capability.h. Capabilities is a
 snapshot of a thread's effective, permitted and inheritable sets as
-reported by capget(2); set() writes new sets back with capset(2). The
+reported by capget(2). set() writes new sets back with capset(2). The
 bounding set is managed through prctl(PR_CAPBSET_*) and the ambient set
 through prctl(PR_CAP_AMBIENT_*).
 
@@ -133,7 +133,7 @@ def _check_index(cap: Cap | int) -> int:
 class Capabilities:
     """Snapshot of a thread's effective, permitted and inheritable sets.
 
-    Read with for_self() or for_pid(); write back with set(). The object
+    Read with for_self() or for_pid(). Write back with set(). The object
     is immutable: set() pushes new values to the kernel but does not
     refresh the snapshot.
     """
@@ -174,7 +174,7 @@ class Capabilities:
     ) -> None:
         """Write capability sets back to the kernel via capset(2).
 
-        Arguments left as None keep this snapshot's values; capset always
+        Arguments left as None keep this snapshot's values. capset always
         writes all three sets at once. Only the calling thread's sets can
         be changed: other pids are rejected with EPERM, and requests that
         break the rules of capabilities(7), such as adding a capability
@@ -234,7 +234,7 @@ def drop_bounding(cap: Cap | int) -> None:
     """Remove a capability from the calling thread's bounding set.
 
     Dropping is irreversible for the thread and its descendants and
-    requires CAP_SETPCAP in the effective set; without it the kernel
+    requires CAP_SETPCAP in the effective set. Without it the kernel
     answers EPERM.
     """
     index = _check_index(cap)
