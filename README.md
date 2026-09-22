@@ -3,6 +3,7 @@
 [![CI](https://github.com/Quad4-Software/posixcaps/actions/workflows/ci.yml/badge.svg)](https://github.com/Quad4-Software/posixcaps/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/Quad4-Software/posixcaps/actions/workflows/codeql.yml/badge.svg)](https://github.com/Quad4-Software/posixcaps/actions/workflows/codeql.yml)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Quad4-Software/posixcaps/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Quad4-Software/posixcaps)
+[![PyPI](https://img.shields.io/pypi/v/posixcaps.svg)](https://pypi.org/project/posixcaps/)
 [![License: 0BSD](https://img.shields.io/badge/license-0BSD-blue)](LICENSE)
 
 Dependency-free Python bindings for Linux capabilities. Read and modify
