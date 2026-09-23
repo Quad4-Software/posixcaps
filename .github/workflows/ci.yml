@@ -56,4 +56,9 @@ jobs:
 
       - run: uv python install ${{ matrix.python }}
       - run: uv sync --locked --python ${{ matrix.python }}
-      - run: uv run pytest --cov
+      - run: uv run pytest --cov -rs
+
+      - name: Test capability-gated paths as root
+        run: >
+          sudo .venv/bin/python -m pytest tests/test_real.py -rs
+          -k "bounding_in_child or ambient_roundtrip_in_child or file_caps_roundtrip"
