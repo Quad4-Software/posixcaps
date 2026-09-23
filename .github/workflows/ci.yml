@@ -60,5 +60,7 @@ jobs:
 
       - name: Test capability-gated paths as root
         run: >
-          sudo .venv/bin/python -m pytest tests/test_real.py -rs
-          -k "bounding_in_child or ambient_roundtrip_in_child or file_caps_roundtrip"
+          sudo .venv/bin/python -m pytest tests/test_real.py
+          tests/test_securebits.py -rs
+          -k "bounding_in_child or ambient_roundtrip_in_child
+          or file_caps_roundtrip or lock_classic_bit_in_child"
